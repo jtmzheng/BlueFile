@@ -1,0 +1,25 @@
+*target*
+*.war
+*.ear
+*.class
+
+# Logs
+logs/**
+*.log
+
+# eclipse specific git ignore
+*.pydevproject
+.project
+.metadata
+bin/**
+gen/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.DS_Store
