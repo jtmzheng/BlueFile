@@ -19,7 +19,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.example.bluefile.fragment.AddFileDialog.NoticeDialogListener;
-import com.example.bluefile.fragment.BlueToothFragment;
+import com.example.bluefile.fragment.BlueToothHostFragment;
 import com.example.bluefile.fragment.FileFragment;
 
 
@@ -29,7 +29,7 @@ public class BTHostActivity extends FragmentActivity implements NoticeDialogList
 	private ViewPager mViewPager;
 
 	private FileFragment fileFrag;
-	private BlueToothFragment btFrag;
+	private BlueToothHostFragment btFrag;
 	
 	private Set<BTFile> filesToSend;
 
@@ -42,7 +42,7 @@ public class BTHostActivity extends FragmentActivity implements NoticeDialogList
 		setContentView(R.layout.host_main);
 
 		fileFrag = new FileFragment();
-		btFrag = new BlueToothFragment();
+		btFrag = new BlueToothHostFragment();
 
 		hostPageAdapter = new BTHostAdapter(getSupportFragmentManager());		
 		hostPageAdapter.addFragment(fileFrag);

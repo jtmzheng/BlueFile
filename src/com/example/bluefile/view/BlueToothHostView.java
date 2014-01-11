@@ -3,9 +3,9 @@ package com.example.bluefile.view;
 import android.content.Context;
 import android.view.View;
 
-public class BlueToothView extends View {
+public class BlueToothHostView extends View {
 
-	public BlueToothView(Context context) {
+	public BlueToothHostView(Context context) {
 		super(context);
 	}
 
