@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BlueFile</string>
+    <string name="hostactivity_name">HostActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="HostTransfer">Host Transfer</string>
+    <string name="ConnectTransfer">Connect to Host</string>
+	<string name="add_file">Add this file to the list to be transfered?</string>
+	<string name="add_file_yes">Yes</string>
+	<string name="add_file_no">No</string>
+	
+</resources>
