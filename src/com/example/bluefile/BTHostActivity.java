@@ -11,10 +11,11 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
@@ -24,13 +25,14 @@ import com.example.bluefile.fragment.FileFragment;
 
 
 public class BTHostActivity extends ActionBarActivity implements NoticeDialogListener {
-	
+
 	private BTHostAdapter hostPageAdapter;
 	private ViewPager mViewPager;
+	private ActionBar mActionBar;
 
 	private FileFragment fileFrag;
 	private BlueToothHostFragment btFrag;
-	
+
 	private Set<BTFile> filesToSend;
 
 	@Override
@@ -45,20 +47,50 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 		hostPageAdapter = new BTHostAdapter(getSupportFragmentManager());		
 		hostPageAdapter.addFragment(fileFrag);
 		hostPageAdapter.addFragment(btFrag);
-		
+
 		// Set up the ViewPager, attaching the adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(hostPageAdapter);
-        
+		mViewPager = (ViewPager) findViewById(R.id.pager);
+		mViewPager.setAdapter(hostPageAdapter);
+
 		filesToSend = new HashSet<BTFile>();
-		
+
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Log.v("onCreateOM", "Create options menu");
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.host_main, menu);
+
+		mActionBar = getSupportActionBar();
+
+		// Specify that tabs should be displayed in the action bar.
+		mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+		// Create a tab listener that is called when the user changes tabs.
+		ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+			public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+				mViewPager.setCurrentItem(tab.getPosition());
+			}
+
+			@Override
+			public void onTabReselected(Tab arg0, FragmentTransaction arg1) {}
+
+			@Override
+			public void onTabUnselected(Tab arg0, FragmentTransaction arg1) {}
+		};
+
+		mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+			@Override
+			public void onPageSelected(int position) {
+				// When swiping between pages, select the corresponding tab.
+				getActionBar().setSelectedNavigationItem(position);
+			}
+		});
+
+		// Add tabs for files, devices
+		mActionBar.addTab(mActionBar.newTab().setText(R.string.action_fileexplorer).setTabListener(tabListener));
+		mActionBar.addTab(mActionBar.newTab().setText(R.string.action_btexplorer).setTabListener(tabListener));
+
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -74,11 +106,11 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 			btFile = null;
 			e.printStackTrace();
 		}
-		
+
 		if(btFile != null) {
 			filesToSend.add(btFile);
 		}
-		
+
 		System.out.println(filesToSend);
 	}
 
@@ -89,34 +121,34 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 	public void onDialogNegativeClick(File file, int id) {
 
 	}
-	
+
 	public void updateConnectionsBtnClick(View v) {
-		
+
 	}
-	
-	
+
+
 	private class BTHostAdapter extends FragmentPagerAdapter {
 
 		private List<Fragment> mFragmentList;
 
-	    public BTHostAdapter(FragmentManager fm) {
-	        super(fm);
-	        mFragmentList = new ArrayList<Fragment>();
-	    }
+		public BTHostAdapter(FragmentManager fm) {
+			super(fm);
+			mFragmentList = new ArrayList<Fragment>();
+		}
 
-	    public void addFragment(Fragment fragment) {
-	        mFragmentList.add(fragment);
-	    }
+		public void addFragment(Fragment fragment) {
+			mFragmentList.add(fragment);
+		}
 
-	    @Override
-	    public int getCount() {
-	        return mFragmentList.size();
-	    }
+		@Override
+		public int getCount() {
+			return mFragmentList.size();
+		}
 
-	    @Override
-	    public Fragment getItem(int position) {
-	        return mFragmentList.get(position);
-	    }
-		
+		@Override
+		public Fragment getItem(int position) {
+			return mFragmentList.get(position);
+		}
+
 	}
 }
