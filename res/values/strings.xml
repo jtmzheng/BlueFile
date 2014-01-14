@@ -13,5 +13,6 @@
 	<string name="explorer">Explorer</string>
 	<string name="action_btexplorer">Devices</string>
 	<string name="action_fileexplorer">Explorer</string>
+	<string name="updateButton">Update</string>
 	
 </resources>

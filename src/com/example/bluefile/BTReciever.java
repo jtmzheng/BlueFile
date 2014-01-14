@@ -1,6 +1,6 @@
 package com.example.bluefile;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,16 +10,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.example.bluefile.fragment.BlueToothHostFragment.StableArrayAdapter;
 
 public class BTReciever extends BroadcastReceiver {
 
 	public BluetoothDevice myDevice;
-	public Map<String, BluetoothDevice> map;
+	public Map<String, BluetoothDevice> mapDevices;
 	public List<BluetoothDevice> devices;
+		
+	private StableArrayAdapter mDeviceAdapter;
 
-	public BTReciever () {
-		map = new HashMap<String, BluetoothDevice> ();
+	public BTReciever (StableArrayAdapter adapter) {
+		mapDevices = new LinkedHashMap<String, BluetoothDevice> ();
 		devices = new ArrayList<BluetoothDevice>();
+		mDeviceAdapter = adapter;
 	}
 
 	@Override
@@ -32,10 +36,17 @@ public class BTReciever extends BroadcastReceiver {
 			// Add the device if valid and not already in the list
 			if(device != null && !devices.contains(device)) {
 				devices.add(device);
-				map.put(device.getName(), device);
+				mapDevices.put(device.getName(), device);
+				
+				mDeviceAdapter.clear();
+				mDeviceAdapter.addAll(mapDevices.keySet());
+				mDeviceAdapter.notifyDataSetChanged();
+				
 				Log.v("BTReciever", "Found device! " + device.getName() + "\n" + device.getName());
+				Log.v("BTReciever", "Devices map: " + mapDevices.keySet());
 			}
 		}
 
 	}
+	
 }
