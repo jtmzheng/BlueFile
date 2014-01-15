@@ -19,11 +19,13 @@ public class BTReciever extends BroadcastReceiver {
 	public List<BluetoothDevice> devices;
 		
 	private StableArrayAdapter mDeviceAdapter;
+	private String mCurrentDevice;
 
 	public BTReciever (StableArrayAdapter adapter) {
 		mapDevices = new LinkedHashMap<String, BluetoothDevice> ();
 		devices = new ArrayList<BluetoothDevice>();
 		mDeviceAdapter = adapter;
+		mCurrentDevice = new String();
 	}
 
 	@Override
@@ -47,6 +49,10 @@ public class BTReciever extends BroadcastReceiver {
 			}
 		}
 
+	}
+	
+	public BluetoothDevice getCurrentDevice(String name) {
+		return mapDevices.get(name);
 	}
 	
 }

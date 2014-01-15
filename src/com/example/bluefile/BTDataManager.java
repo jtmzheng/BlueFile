@@ -19,7 +19,7 @@ public class BTDataManager implements Runnable {
 	private static final Object m_socketLock = new Object(); // uh I don't know how many objects can use the bluetooth socket.. this may screw up
 	private final ArrayBlockingQueue<Object> m_dataPackets; //The data packets that have been read
 
-	public BTDataManager(BluetoothSocket socket){
+	public BTDataManager(BluetoothSocket socket) {
 		m_socket = socket;
 		InputStream tmpIn = null;
 		OutputStream tmpOut = null;
@@ -70,7 +70,7 @@ public class BTDataManager implements Runnable {
 	 * Retrieve the object data read in from the bluetooth socket from the queue
 	 * @author Max 
 	 */
-	public synchronized Object getLatestData(){
+	public synchronized Object getLatestData() {
 		return this.m_dataPackets.poll(); // returns null if empty
 	}
 
@@ -84,8 +84,7 @@ public class BTDataManager implements Runnable {
 		}
 	}
 
-	public void write(BTFile btFile) throws IOException{
-
+	public void write(BTFile btFile) throws IOException {
 		byte[] data = Serializer.serialize(btFile);
 		byte[] data2 = new byte[data.length + 4];
 		int size = data.length;

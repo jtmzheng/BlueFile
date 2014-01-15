@@ -17,7 +17,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.bluefile.fragment.AddFileDialog.NoticeDialogListener;
 import com.example.bluefile.fragment.BlueToothHostFragment;
@@ -29,11 +31,13 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 	private BTHostAdapter hostPageAdapter;
 	private ViewPager mViewPager;
 	private ActionBar mActionBar;
+	private TextView mTextView;
 
 	private FileFragment fileFrag;
 	private BlueToothHostFragment btFrag;
 
 	private Set<BTFile> filesToSend;
+	private BTFile fileToSend;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +95,26 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 		mActionBar.addTab(mActionBar.newTab().setText(R.string.action_fileexplorer).setTabListener(tabListener));
 		mActionBar.addTab(mActionBar.newTab().setText(R.string.action_btexplorer).setTabListener(tabListener));
 
+		mTextView = (TextView)findViewById(R.id.file);
+		
 		return super.onCreateOptionsMenu(menu);
+	}
+	
+	/**
+	 * Callback for the menu items
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.startHosting:	{
+			System.out.println("Test");
+			return true;
+		}
+		default: {
+			return super.onOptionsItemSelected(item);
+		}
+		}
 	}
 
 	/**
@@ -109,6 +132,8 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 
 		if(btFile != null) {
 			filesToSend.add(btFile);
+			fileToSend = btFile;
+			mTextView.setText(getResources().getString(R.string.selectedFile) + btFile.fileName);
 		}
 
 		System.out.println(filesToSend);
@@ -124,6 +149,10 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 
 	public void updateConnectionsBtnClick(View v) {
 
+	}
+	
+	public void startTransferHostBtnClick(View v) {
+	
 	}
 
 

@@ -7,12 +7,15 @@
     <string name="menu_settings">Settings</string>
     <string name="HostTransfer">Host Transfer</string>
     <string name="ConnectTransfer">Connect to Host</string>
+    <string name="selectedFile">Selected file: </string>
+    <string name="selectedDevice">Selected device: </string>
 	<string name="add_file">Add this file to the list to be transferred?</string>
 	<string name="add_file_yes">Yes</string>
 	<string name="add_file_no">No</string>
 	<string name="explorer">Explorer</string>
 	<string name="action_btexplorer">Devices</string>
 	<string name="action_fileexplorer">Explorer</string>
+	<string name="action_start">Start</string>
 	<string name="updateButton">Update</string>
 	
 </resources>

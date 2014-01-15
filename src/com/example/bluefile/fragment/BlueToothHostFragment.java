@@ -1,5 +1,6 @@
 package com.example.bluefile.fragment;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -23,9 +25,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView;
 
 import com.example.bluefile.BTDataManager;
 import com.example.bluefile.BTFile;
@@ -39,11 +44,14 @@ public class BlueToothHostFragment extends Fragment {
 
 	private View view;
 	private Activity activity;
+	private TextView mCurrentDeviceName;
 	private UUID btUUID;
 
 	private BluetoothAdapter btAdapter;
 	private BTReciever btReceiver;
 	private StableArrayAdapter mDeviceAdapter;
+	private BluetoothDevice mCurrentBtDevice;
+	
 	private Handler handler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -91,15 +99,24 @@ public class BlueToothHostFragment extends Fragment {
 
 		// Get a list of the bluetooth devices available
 		ListView listview = (ListView)view.findViewById(R.id.listDevices);
-
-		List<String> deviceNames = new ArrayList<String>();
-		mDeviceAdapter = new StableArrayAdapter(getActivity(), R.layout.row, deviceNames);
+		mDeviceAdapter = new StableArrayAdapter(getActivity(), R.layout.row, new ArrayList<String>());
 		btReceiver = new BTReciever(mDeviceAdapter);
 		listview.setAdapter(mDeviceAdapter);
 
 		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		this.getActivity().registerReceiver(btReceiver, filter);
-		btAdapter.startDiscovery();             
+		btAdapter.startDiscovery();       
+		
+		mCurrentDeviceName = (TextView)view.findViewById(R.id.currentDevice);
+		
+		// Select the current device
+		listview.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				mCurrentBtDevice = btReceiver.getCurrentDevice((String)parent.getItemAtPosition(position));
+				mCurrentDeviceName.setText(getResources().getString(R.string.selectedDevice) + mCurrentBtDevice.getName());
+			}
+		});		
 	}
 
 	public void requestBlueToothOn() {
@@ -125,7 +142,7 @@ public class BlueToothHostFragment extends Fragment {
 		}
 
 		@Override
-		public long getItemId(int position) { 			
+		public long getItemId(int position) { 		
 			return super.getItemId(position);
 		}
 

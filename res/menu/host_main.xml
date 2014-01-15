@@ -3,12 +3,8 @@
 	  >
 	  
      <item
-        android:id="@+id/action_fileexplorer"
-        android:title="@string/action_fileexplorer"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_btexplorer"
-        android:title="@string/action_btexplorer" 
+        android:id="@+id/startHosting"
+        android:title="@string/action_start"
         app:showAsAction="ifRoom" />
           
 </menu>
