@@ -109,7 +109,7 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 		switch (item.getItemId()) {
 		case R.id.startHosting:	{
 			System.out.println("Test");
-			return true;
+			return btFrag.startHostTransfer();
 		}
 		default: {
 			return super.onOptionsItemSelected(item);

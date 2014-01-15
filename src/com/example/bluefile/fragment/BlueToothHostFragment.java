@@ -123,6 +123,19 @@ public class BlueToothHostFragment extends Fragment {
 		Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 		((Activity)view.getContext()).startActivityForResult(enableBtIntent, 1);
 	}
+	
+	public boolean startHostTransfer() {
+		if(mCurrentBtDevice != null) {
+			System.out.println("Passed");
+			ConnectRunnable connectRun = new ConnectRunnable(mCurrentBtDevice);
+			Thread connectHostThread = new Thread(connectRun);
+			connectHostThread.start();
+			return true;
+		} else {
+			System.out.println("Failed");
+			return false;
+		}
+	}
 
 	/**
 	 * 
@@ -185,26 +198,20 @@ public class BlueToothHostFragment extends Fragment {
 			try {
 				// Connect the device through the socket. This will block
 				// until it succeeds or throws an exception
+				Log.v("Connection: ", "Trying to connect");
 				mmSocket.connect();
 			} catch (IOException connectException) {
 				Log.v("Connection: ", "Failed");
 				return;
 			}
 
+			Log.v("Connection: ", "Success");
 			// Do work to manage the connection (in a separate thread)
 			// manageConnectedSocket(mmSocket);
-		}
-		
-		/** 
-		 * Will cancel an in-progress connection, and close the socket 
-		 * */
-		public void cancel() {
-			try {
-				mmSocket.close();
-			} catch (IOException e) { }
+			btAdapter.startDiscovery();
 		}
 
-		private void manageConnectedSocket(BluetoothSocket mmSocket2) {
+		private void transfer(BluetoothSocket mmSocket2) {
 			BTDataManager manager = new BTDataManager(mmSocket2);
 			Thread t = new Thread(manager);
 			t.start();
@@ -229,6 +236,7 @@ public class BlueToothHostFragment extends Fragment {
 		}
 
 	}
+
 
 
 }
