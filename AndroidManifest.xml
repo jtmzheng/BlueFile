@@ -33,6 +33,10 @@
             android:name="com.example.bluefile.BTHostActivity">
         </activity>
         
+        <activity
+            android:name="com.example.bluefile.BTClientActivity">
+        </activity>
+        
     </application>
 
 </manifest>

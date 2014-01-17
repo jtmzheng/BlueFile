@@ -7,6 +7,7 @@
     <string name="menu_settings">Settings</string>
     <string name="HostTransfer">Host Transfer</string>
     <string name="ConnectTransfer">Connect to Host</string>
+    <string name="ConnectTransferBtn">Start Transfer</string>
     <string name="selectedFile">Selected file: </string>
     <string name="selectedDevice">Selected device: </string>
 	<string name="add_file">Add this file to the list to be transferred?</string>

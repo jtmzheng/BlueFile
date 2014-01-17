@@ -1,6 +1,5 @@
 package com.example.bluefile.fragment;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -26,10 +24,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TextView;
 
 import com.example.bluefile.BTDataManager;
@@ -118,11 +116,6 @@ public class BlueToothHostFragment extends Fragment {
 			}
 		});		
 	}
-
-	public void requestBlueToothOn() {
-		Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		((Activity)view.getContext()).startActivityForResult(enableBtIntent, 1);
-	}
 	
 	public boolean startHostTransfer() {
 		if(mCurrentBtDevice != null) {
@@ -135,6 +128,11 @@ public class BlueToothHostFragment extends Fragment {
 			System.out.println("Failed");
 			return false;
 		}
+	}
+	
+	private void requestBlueToothOn() {
+		Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+		((Activity)view.getContext()).startActivityForResult(enableBtIntent, 1);
 	}
 
 	/**
@@ -207,7 +205,7 @@ public class BlueToothHostFragment extends Fragment {
 
 			Log.v("Connection: ", "Success");
 			// Do work to manage the connection (in a separate thread)
-			// manageConnectedSocket(mmSocket);
+			// transfer(mmSocket);
 			btAdapter.startDiscovery();
 		}
 

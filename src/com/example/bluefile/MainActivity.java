@@ -62,7 +62,8 @@ public class MainActivity extends ActionBarActivity {
 	 * @param v
 	 */
 	public void connectTransferStart(View v) {
-
+		Intent intent = new Intent(this, BTClientActivity.class);
+        startActivity(intent);
 	}
 
 }
