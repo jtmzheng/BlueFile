@@ -1,7 +1,6 @@
 package com.example.bluefile.fragment;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.UUID;
 
 import android.app.Activity;
@@ -12,8 +11,6 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -62,9 +59,7 @@ public class BlueToothClientFragment extends Fragment {
 	}
 
 	@Override
-	public void onStart() {
-		System.out.println("ClientOnStart");
-		
+	public void onStart() {		
 		super.onStart();
 
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -89,12 +84,6 @@ public class BlueToothClientFragment extends Fragment {
 		mProgress.setMessage("Trying to connect to host...");
 		mProgress.show();
 		
-		/*
-		ConnectRunnable connRun = new ConnectRunnable();
-		Thread connThread = new Thread(connRun);
-		connThread.run();
-		*/
-		
 		new ConnectTask().execute(0);
 	}
 	
@@ -104,6 +93,11 @@ public class BlueToothClientFragment extends Fragment {
 		((Activity)view.getContext()).startActivityForResult(enableBtIntent, 1);
 	}
 	
+	/**
+	 * Task connects with remote Bluetooth device and accepts file
+	 * @author Max
+	 *
+	 */
 	private class ConnectTask extends AsyncTask<Integer, String, Long> {
 		
 		private BluetoothServerSocket mServerSocket;

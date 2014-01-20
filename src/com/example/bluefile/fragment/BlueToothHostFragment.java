@@ -1,6 +1,5 @@
 package com.example.bluefile.fragment;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -16,6 +16,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -34,12 +35,9 @@ import android.widget.TextView;
 
 import com.example.bluefile.BTDataManager;
 import com.example.bluefile.BTFile;
-import com.example.bluefile.BTFileManager;
 import com.example.bluefile.BTHostActivity;
 import com.example.bluefile.BTReciever;
-import com.example.bluefile.MainActivity;
 import com.example.bluefile.R;
-import com.example.bluefile.Serializer;
 import com.example.bluefile.view.BlueToothHostView;
 
 public class BlueToothHostFragment extends Fragment {
@@ -56,14 +54,7 @@ public class BlueToothHostFragment extends Fragment {
 	private StableArrayAdapter mDeviceAdapter;
 	private BluetoothDevice mCurrentBtDevice;
 	private BluetoothServerSocket mServerSocket;
-	
-	private Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			System.out.println(msg);
-		}
-	};
-
+	private ProgressDialog mProgressDialog;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -128,15 +119,29 @@ public class BlueToothHostFragment extends Fragment {
 		});		
 	}
 	
+	@Override
+	public void onStop() {
+		activity.unregisterReceiver(btReceiver);
+		super.onStop();
+	}
+	
 	public boolean startHostTransfer() {
 		if(mCurrentBtDevice != null) {
-			System.out.println("Passed");
+			mProgressDialog = new ProgressDialog(activity);
+			mProgressDialog.setMessage("Starting host... please wait");
+			mProgressDialog.setTitle("Host");
+			mProgressDialog.show();
+			
+			/*
 			HostRunnable hostRun = new HostRunnable();
 			Thread connectHostThread = new Thread(hostRun);
 			connectHostThread.start();
+			*/
+			BTFile btFile = ((BTHostActivity)activity).getSelectedFile();
+			
+			new HostTransferTask().execute(btFile);
 			return true;
 		} else {
-			System.out.println("Failed");
 			return false;
 		}
 	}
@@ -175,73 +180,73 @@ public class BlueToothHostFragment extends Fragment {
 
 	}
 
-
-	/**
-	 * 
-	 * @author Max
-	 *
-	 */
-	private class HostRunnable implements Runnable {
+	private class HostTransferTask extends AsyncTask<BTFile, String, Boolean> {
 		
-		private BluetoothSocket mmSocket;
-
-		public HostRunnable() {
-			BluetoothSocket tmp = null;
-
-			// Get a BluetoothSocket to connect with the given BluetoothDevice
+		@Override
+		protected Boolean doInBackground(BTFile ... file) {
+			BluetoothSocket clientSocket = null;
+			
 			try {
-				// MY_UUID is the app's UUID string, also used by the server code
-				tmp = mCurrentBtDevice.createInsecureRfcommSocketToServiceRecord(btUUID);
+				clientSocket = mCurrentBtDevice.createInsecureRfcommSocketToServiceRecord(btUUID);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			mmSocket = tmp;
-		}
 
-		public void run() {
+			publishProgress("Started host successfully!");
 			// Cancel discovery because it will slow down the connection
 			btAdapter.cancelDiscovery();
 
 			try {
 				// Connect the device through the socket
 				Log.v("Connection: ", "Trying to connect");
-				mmSocket.connect();
+				clientSocket.connect();
 			} catch (IOException connectException) {
 				Log.v("Connection: ", "Failed");
-				return;
+				return false;
 			}
 
+			publishProgress("Connected to device " + mCurrentBtDevice.getName());
+
 			Log.v("Connection: ", "Success");
-			transfer(mmSocket);
+			boolean retVal = transfer(clientSocket, file[0]);
+			if(retVal) {
+				publishProgress("Sent file to" +  mCurrentBtDevice.getName());
+			} else {
+				publishProgress("Failed to send file!");
+			}
 			
 			btAdapter.startDiscovery();
+			
+			return retVal;
+		}
+		
+		@Override
+		protected void onProgressUpdate(String ... progressMsg) {
+			mProgressDialog.setMessage(progressMsg[0]);
 		}
 
-
+		@Override
+		protected void onPostExecute(Boolean result) {
+			mProgressDialog.dismiss();
+		}
+		
 		/**
 		 * Writes the file to the file system
 		 * @param socket
 		 */
-		private void transfer(BluetoothSocket socket) {			
+		private boolean transfer(BluetoothSocket socket, BTFile btFile) {			
 			BTDataManager manager = new BTDataManager(socket);
-			BTFile btFile = ((BTHostActivity)activity).getSelectedFile();
 
 			try {
 				manager.write(btFile);
 			} catch (IOException e) {
 				e.printStackTrace();
+				return false;
 			}
-			handler.sendEmptyMessage(0);                        
-
+			                     
+			return true;
 		}
-
-		/** Will cancel the listening socket, and cause the thread to finish */
-		public void cancel() {
-			try {
-				mServerSocket.close();
-			} catch (IOException e) { }
-		}
+		
 	}
 
 
