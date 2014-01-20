@@ -1,5 +1,6 @@
 package com.example.bluefile.fragment;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
@@ -33,13 +35,17 @@ import android.widget.TextView;
 import com.example.bluefile.BTDataManager;
 import com.example.bluefile.BTFile;
 import com.example.bluefile.BTFileManager;
+import com.example.bluefile.BTHostActivity;
 import com.example.bluefile.BTReciever;
+import com.example.bluefile.MainActivity;
 import com.example.bluefile.R;
 import com.example.bluefile.Serializer;
 import com.example.bluefile.view.BlueToothHostView;
 
 public class BlueToothHostFragment extends Fragment {
 
+	private static final String NAME = "BlueFile";
+	
 	private View view;
 	private Activity activity;
 	private TextView mCurrentDeviceName;
@@ -49,6 +55,7 @@ public class BlueToothHostFragment extends Fragment {
 	private BTReciever btReceiver;
 	private StableArrayAdapter mDeviceAdapter;
 	private BluetoothDevice mCurrentBtDevice;
+	private BluetoothServerSocket mServerSocket;
 	
 	private Handler handler = new Handler() {
 		@Override
@@ -82,7 +89,7 @@ public class BlueToothHostFragment extends Fragment {
 	}
 
 	@Override 
-	public void onStart() {
+	public void onStart() {	
 		super.onStart();
 
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -94,6 +101,10 @@ public class BlueToothHostFragment extends Fragment {
 		if(!btAdapter.isEnabled()) {
 			requestBlueToothOn();
 		}
+		
+		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+		activity.startActivity(discoverableIntent);
 
 		// Get a list of the bluetooth devices available
 		ListView listview = (ListView)view.findViewById(R.id.listDevices);
@@ -120,8 +131,8 @@ public class BlueToothHostFragment extends Fragment {
 	public boolean startHostTransfer() {
 		if(mCurrentBtDevice != null) {
 			System.out.println("Passed");
-			ConnectRunnable connectRun = new ConnectRunnable(mCurrentBtDevice);
-			Thread connectHostThread = new Thread(connectRun);
+			HostRunnable hostRun = new HostRunnable();
+			Thread connectHostThread = new Thread(hostRun);
 			connectHostThread.start();
 			return true;
 		} else {
@@ -164,24 +175,23 @@ public class BlueToothHostFragment extends Fragment {
 
 	}
 
+
 	/**
 	 * 
 	 * @author Max
 	 *
 	 */
-	private class ConnectRunnable implements Runnable {
+	private class HostRunnable implements Runnable {
 		
 		private BluetoothSocket mmSocket;
-		private final BluetoothDevice mmDevice;
 
-		public ConnectRunnable(BluetoothDevice device) {
+		public HostRunnable() {
 			BluetoothSocket tmp = null;
-			mmDevice = device;
 
 			// Get a BluetoothSocket to connect with the given BluetoothDevice
 			try {
 				// MY_UUID is the app's UUID string, also used by the server code
-				tmp = device.createInsecureRfcommSocketToServiceRecord(btUUID);
+				tmp = mCurrentBtDevice.createInsecureRfcommSocketToServiceRecord(btUUID);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -194,8 +204,7 @@ public class BlueToothHostFragment extends Fragment {
 			btAdapter.cancelDiscovery();
 
 			try {
-				// Connect the device through the socket. This will block
-				// until it succeeds or throws an exception
+				// Connect the device through the socket
 				Log.v("Connection: ", "Trying to connect");
 				mmSocket.connect();
 			} catch (IOException connectException) {
@@ -204,37 +213,36 @@ public class BlueToothHostFragment extends Fragment {
 			}
 
 			Log.v("Connection: ", "Success");
-			// Do work to manage the connection (in a separate thread)
-			// transfer(mmSocket);
+			transfer(mmSocket);
+			
 			btAdapter.startDiscovery();
 		}
 
-		private void transfer(BluetoothSocket mmSocket2) {
-			BTDataManager manager = new BTDataManager(mmSocket2);
-			Thread t = new Thread(manager);
-			t.start();
 
-			while(true) {
-				Object obj = manager.getLatestData();
-				if(obj != null) {
-					byte [] data = (byte [])obj;
-					try {
-						BTFile file = (BTFile)Serializer.deserialize(data);
-						BTFileManager.writeFile(file, activity);
-						handler.sendEmptyMessage(0);                        
+		/**
+		 * Writes the file to the file system
+		 * @param socket
+		 */
+		private void transfer(BluetoothSocket socket) {			
+			BTDataManager manager = new BTDataManager(socket);
+			BTFile btFile = ((BTHostActivity)activity).getSelectedFile();
 
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (ClassNotFoundException e) {
-						e.printStackTrace();
-					}
-				}
+			try {
+				manager.write(btFile);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
+			handler.sendEmptyMessage(0);                        
 
 		}
 
+		/** Will cancel the listening socket, and cause the thread to finish */
+		public void cancel() {
+			try {
+				mServerSocket.close();
+			} catch (IOException e) { }
+		}
 	}
-
 
 
 }

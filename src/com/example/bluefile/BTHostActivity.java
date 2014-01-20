@@ -108,7 +108,6 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.startHosting:	{
-			System.out.println("Test");
 			return btFrag.startHostTransfer();
 		}
 		default: {
@@ -153,6 +152,14 @@ public class BTHostActivity extends ActionBarActivity implements NoticeDialogLis
 	
 	public void startTransferHostBtnClick(View v) {
 	
+	}
+	
+	public BTFile getSelectedFile() {
+		if(fileToSend != null) {
+			return fileToSend;
+		} else {
+			return null;
+		}
 	}
 
 

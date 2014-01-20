@@ -18,6 +18,7 @@ public class BTDataManager implements Runnable {
 
 	private static final Object m_socketLock = new Object(); // uh I don't know how many objects can use the bluetooth socket.. this may screw up
 	private final ArrayBlockingQueue<Object> m_dataPackets; //The data packets that have been read
+	private volatile boolean isCanceled;
 
 	public BTDataManager(BluetoothSocket socket) {
 		m_socket = socket;
@@ -40,14 +41,15 @@ public class BTDataManager implements Runnable {
 		m_outstream = tmpOut;
 		
 		// At most 10 objects queued 
-		m_dataPackets = new ArrayBlockingQueue<Object>(10); 
+		m_dataPackets = new ArrayBlockingQueue<Object>(10);
+		isCanceled = false;
 
 
 	}
 
 	@Override
 	public void run() {
-		while (true) { 
+		while (!isCanceled) { 
 			try {
 				if(m_instreamReader.available() <= 0)
 					continue;
@@ -75,10 +77,8 @@ public class BTDataManager implements Runnable {
 	}
 
 	public void write(byte [] bytes) {
-
 		try {
 			m_outstream.write(bytes);
-
 		} catch (IOException e) { 
 			e.printStackTrace();
 		}
@@ -106,6 +106,7 @@ public class BTDataManager implements Runnable {
 
 	/* Call this from the main activity to shutdown the connection */
 	public void cancel() {
+		isCanceled = true;
 		try {
 			m_socket.close();
 		} catch (IOException e) { 
