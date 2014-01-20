@@ -38,8 +38,6 @@ public class BlueToothClientFragment extends Fragment {
 
 	private BluetoothAdapter btAdapter;	
 	private ProgressDialog mProgress;
-	
-	private Handler handler;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -59,14 +57,6 @@ public class BlueToothClientFragment extends Fragment {
 
 		String uuid ="566156c0-49a8-11e3-8f96-0800200c9a66";
 		btUUID = UUID.fromString(uuid);
-		
-		handler = new Handler() {
-			@Override
-			public void handleMessage(Message msg) {
-				if(mProgress != null)
-					mProgress.dismiss();
-			}
-		};
 		
 		return layout;
 	}
@@ -114,10 +104,9 @@ public class BlueToothClientFragment extends Fragment {
 		((Activity)view.getContext()).startActivityForResult(enableBtIntent, 1);
 	}
 	
-	private class ConnectTask extends AsyncTask<Integer, Integer, Long> {
+	private class ConnectTask extends AsyncTask<Integer, String, Long> {
 		
 		private BluetoothServerSocket mServerSocket;
-
 
 		protected Long doInBackground(Integer ... i) {
 			
@@ -125,7 +114,6 @@ public class BlueToothClientFragment extends Fragment {
 			try {
 				tmp = btAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, btUUID);
 			} catch (IOException e) { 
-				handler.sendEmptyMessage(0);
 				return -1L;
 			}
 
@@ -146,8 +134,8 @@ public class BlueToothClientFragment extends Fragment {
 				}
 
 			}
-
-			publishProgress(0);
+			
+			publishProgress("Trying to recieve file from " + socket.getRemoteDevice().getName());
 			
 			acceptTransfer(socket);
 			
@@ -160,15 +148,8 @@ public class BlueToothClientFragment extends Fragment {
 			return 0L;
 		}
 
-		protected void onProgressUpdate(Integer... progress) {
-			if(progress[0] == 0) {
-				mProgress.setMessage("Trying to recieve file from ...");
-			} else if (progress[0] == 1) {
-				mProgress.setMessage("Wrote file to system.");
-			} else {
-				mProgress.setMessage("Done!");
-			}
-			
+		protected void onProgressUpdate(String ... progressMsg) {
+			mProgress.setMessage(progressMsg[0]);
 		}
 
 		protected void onPostExecute(Long result) {
@@ -192,7 +173,7 @@ public class BlueToothClientFragment extends Fragment {
 						BTFile file = (BTFile)Serializer.deserialize(data);
 						BTFileManager.writeFile(file, activity);
 						
-						publishProgress(1);
+						publishProgress("Wrote file " + file.fileName + " to local storage.");
 						
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -213,100 +194,5 @@ public class BlueToothClientFragment extends Fragment {
 		}
 
 	}
-	
-	/**
-	 * 
-	 * @author Max
-	 *
-	 */
-	private class ConnectRunnable implements Runnable {
-		
-		private BluetoothServerSocket mServerSocket;
-		private volatile boolean isCanceled;
-
-		public ConnectRunnable() {			
-			isCanceled = false;
-		}
-
-		public void run() {
-			BluetoothServerSocket tmp;
-			try {
-				tmp = btAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, btUUID);
-			} catch (IOException e) { 
-				e.printStackTrace();
-				handler.sendEmptyMessage(0);
-				return;
-			}
-			
-			mServerSocket = tmp;
-			handler.sendMessage(new Message());
-			
-			// Cancel discovery because it will slow down the connection
-	        btAdapter.cancelDiscovery();
-	        
-			BluetoothSocket socket = null;
-			
-			// Keep listening until exception occurs or a socket is returned
-			while (socket == null) {
-				try {
-					socket = mServerSocket.accept();
-				} catch (IOException e) {
-					e.printStackTrace();
-					break;
-				}
-				
-			}
-						
-			mProgress.setMessage("Trying to recieve file from " + socket.getRemoteDevice().getName() + "...");
-			mProgress.incrementProgressBy(50);
-			
-			isCanceled = false;
-			acceptTransfer(socket);
-			try {
-				mServerSocket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-		}
-		
-		public void cancel() {
-			isCanceled = true;
-		}
-		
-		private void acceptTransfer(BluetoothSocket mSocket) {
-			BTDataManager manager = new BTDataManager(mSocket);
-			Thread t = new Thread(manager);
-			t.start();
-
-			while(!isCanceled) {
-				Object obj = manager.getLatestData();
-
-				if(obj != null) {
-					byte [] data = (byte [])obj;
-					try {
-						BTFile file = (BTFile)Serializer.deserialize(data);
-						BTFileManager.writeFile(file, activity);
-						
-						mProgress.incrementProgressBy(50);
-						handler.sendEmptyMessage(0);                        
-
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (ClassNotFoundException e) {
-						e.printStackTrace();
-					}
-					
-					// Only one object for now
-					isCanceled = true;
-				}
-			}
-			
-			manager.cancel();
-
-		}
-
-	}
-	
 	
 }
